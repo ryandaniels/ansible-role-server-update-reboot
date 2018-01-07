@@ -1,6 +1,7 @@
 # ansible-role-server-update-reboot
 
-Update server OS (Redhat/CentOS and Ubuntu) to latest packages, reboot server, and wait for the server to start up. Add more roles after this to continue installing/configuring server.
+Update server to latest packages, reboot server, and wait for the server to start up. Add more roles after this to continue installing/configuring server.  
+Works with Redhat/CentOS and Ubuntu.  
 
 
 Distros tested
@@ -66,7 +67,7 @@ Prep
 Usage
 ------------
 
-Use all defaults: to update, reboot server, and wait for server to start up.
+Use all defaults to: update, reboot server, and wait for server to start up.
 ```
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=all-dev" -i hosts
 ```
