@@ -1,0 +1,7 @@
+---
+debug_enabled_default: false
+update_default: true
+reboot_default: true
+server_upgrade_reboot_wait: true
+server_upgrade_ssh_port: 22
+
