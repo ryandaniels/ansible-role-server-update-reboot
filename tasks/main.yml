@@ -2,14 +2,70 @@
 - debug: var=proxy_env
   when: debug_enabled_default | bool
 
+- debug: var=server_update_apt_exclude_pkgs
+  when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_exclude_default | bool
+
+- debug: var=server_update_yum_exclude_pkgs
+  when: ansible_os_family == "RedHat" and update_default | bool and server_update_yum_exclude_pkgs
+
+- debug: var=server_update_apt_default
+  when: ansible_os_family == "Debian" and update_default | bool
+
+
+- debug: var=server_update_apt_install_pkgs
+  when: ansible_os_family == "Debian" and update_default | bool and (server_update_apt_default == "update_specific" or server_update_apt_default == "install")
+
+- debug: var=server_update_yum_install_pkgs
+  when: ansible_os_family == "RedHat" and update_default | bool and server_update_yum_install_pkgs is defined
+
+- pause:
+    seconds: 5
+
+#Exclude updating package(s), hack using apt-mark to temp hold before and unhold after update
+#Not using dpkg_selections module since it can't use wildcard.
+- name: apt | exclude a package from updating (hold)
+  command: "apt-mark hold {{item}}"
+  with_items:
+    - "{{ server_update_apt_exclude_pkgs }}"
+  when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_exclude_default | bool
+
 #Upgrade and reboot Ubuntu/Debian based servers
-- name: apt | Upgrade packages
+- name: apt | Upgrade or Install specific packages
+  apt:
+    name: "{{item}}"
+    state: latest
+    #only_upgrade: yes
+    only_upgrade: "{{ 'yes' if server_update_apt_default == 'update_specific' else 'no' }}"
+    #Error from apt module when having upgrade here. Have to separate upgrade dist or upgrade specific package.
+#    upgrade: "{{ 'no' if server_update_apt_install_pkgs is defined else 'dist' | default(dist)}}"
+    update_cache: yes
+  environment: "{{proxy_env}}"
+  register: server_update_apt_install_pkgs_results
+  with_items:
+    - "{{ server_update_apt_install_pkgs }}"
+  when: ansible_os_family == "Debian" and update_default | bool and (server_update_apt_default == "update_specific" or server_update_apt_default == "install")
+
+#because above var was registered in "with_items", cannot print only stdout_lines
+- debug: var=server_update_apt_install_pkgs_results.results
+  when: ansible_os_family == "Debian" and update_default | bool and (server_update_apt_default == "update_specific" or server_update_apt_default == "install")
+
+- name: apt | Upgrade all packages
   apt:
     state: latest
     upgrade: dist
+    #do not use upgrade: safe since it uses aptitude if available, and from testing that doesn't honour apt-mark hold
+    #upgrade: safe
     update_cache: yes
   environment: "{{proxy_env}}"
-  when: ansible_os_family == "Debian" and update_default | bool
+  when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_default == "full"
+
+#Exclude updating package(s), hack using apt-mark to temp hold before and unhold after update
+#Not using dpkg_selections module since it can't use wildcard.
+- name: apt | exclude a package from updating (unhold)
+  command: "apt-mark unhold {{item}}"
+  with_items:
+    - "{{ server_update_apt_exclude_pkgs }}"
+  when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_exclude_default | bool
 
 - name: apt | Check if reboot is needed because kernel was upgraded
   stat:
@@ -35,11 +91,12 @@
 
 #Upgrade and reboot Redhat/CentOS based servers
 - block:
-  - name: yum | Upgrade packages
+  - name: yum | Upgrade or Install packages
     yum:
-      name: '*'
+      name: "{{server_update_yum_install_pkgs | default('*')}}"
       state: latest
       update_cache: yes
+      exclude: "{{server_update_yum_exclude_pkgs | default([])}}"
     environment: "{{proxy_env}}"
     register: stat_yum_upgrade_results
     until: '"failed" not in stat_yum_upgrade_results'
@@ -71,12 +128,12 @@
   poll: 0
   ignore_errors: true
   become: yes
-  when: ansible_os_family == "RedHat" and reboot_default | bool and yum_reboot_hint_result.stdout.find("reboot") != -1
+  when: ansible_os_family == "RedHat" and reboot_default | bool and reboot_hint_result | bool
 
 # Wait for server to come back online
 - name: wait for server {{ ansible_ssh_host | default(inventory_hostname) }} to come back online
   wait_for:
-    port: "{{ server_upgrade_ssh_port }}"
+    port: "{{ server_update_ssh_port }}"
     state: started
     host: '{{ ansible_ssh_host | default(inventory_hostname) }}'
     delay: 10
@@ -85,5 +142,4 @@
     search_regex: OpenSSH
   become: no
   connection: local
-  when: server_upgrade_reboot_wait | bool and reboot_default | bool and reboot_hint_result | bool
-
+  when: server_update_reboot_wait | bool and reboot_default | bool and reboot_hint_result | bool

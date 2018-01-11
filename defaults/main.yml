@@ -2,6 +2,34 @@
 debug_enabled_default: false
 update_default: true
 reboot_default: true
-server_upgrade_reboot_wait: true
-server_upgrade_ssh_port: 22
-
+server_update_reboot_wait: true
+server_update_ssh_port: 22
+#
+#For Redhat/CentOS: List of packages to not update (comma separated). Can include wildcard to match multiple packages.
+#server_update_yum_exclude_pkgs: "mysql*, bash, openssh*"
+server_update_yum_exclude_pkgs: []
+#
+#For Redhat/CentOS: List of packages to ONLY update (comma separated). Can include wildcard to match multiple packages. This will no update anything else (besides dependencies). '*' will update all installed packages.
+#server_update_yum_install_pkgs: "kernel-*, iwl*firmware, microcode_ctl, dracut"
+server_update_yum_install_pkgs: '*'
+#
+#
+#For Ubuntu: List of packages to not update (each on separate line). Can include wildcard (but use ^ to begin match or a lot will match) to match multiple packages.
+server_update_apt_exclude_default: false
+#server_update_apt_exclude_default: true
+#server_update_apt_exclude_pkgs:
+#  - ^mysql*
+#  - bash
+#  - ^openssh*
+#
+#For Ubuntu: List of packages to ONLY update or install (each on separate line). Can include wildcard to match multiple packages. 'full' will do dist-upgrade.
+#server_update_apt_default: full|update_specific|install
+server_update_apt_default: full
+#server_update_apt_default: update_specific
+#server_update_apt_default: install
+#server_update_apt_install_pkgs:
+#  - linux-firmware
+#  - linux-generic
+#  - linux-headers-generic
+#  - linux-image-generic
+#  - openssh*
