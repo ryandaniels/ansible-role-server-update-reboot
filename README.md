@@ -82,6 +82,8 @@ Prep
 Usage
 ------------
 
+### For Redhat/CentOS/Ubuntu
+
 Use all defaults to: update, reboot server, and wait for server to start up.
 ```
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=all-dev" -i hosts-dev
@@ -92,6 +94,8 @@ Same as above, but do not reboot server:
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=all-dev reboot_default=false" -i hosts-dev
 ```
 
+### For Redhat/CentOS
+
 Update all packages except package(s) specified (for RHEL):
 ```
 ansible-playbook server-update-reboot.yml --extra-vars 'inventory=centos-dev server_update_yum_exclude_pkgs="mysql*, bash, openssh*"' -i hosts-dev
@@ -101,6 +105,8 @@ Only update (or install) specific packages (for RHEL):
 ```
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=centos-dev server_update_yum_install_pkgs='kernel-*, iwl*firmware, microcode_ctl, dracut'" -i hosts-dev
 ```
+
+### For Ubuntu
 
 Update all packages except package(s) specified (for Ubuntu):
 ```
@@ -123,7 +129,7 @@ ansible-playbook server-update-reboot.yml --extra-vars "inventory=ubuntu-dev ser
 To patch Redhat/CentOS 7 and Ubuntu 16.04, for Spectre and Meltdown (CVE-2017-5754, CVE-2017-5753, CVE-2017-5715)  
 
 
-### For Redhat/CentOS
+### For Redhat/CentOS 7
 ```
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=centos-dev server_update_yum_install_pkgs='kernel-*, iwl*firmware, microcode_ctl, dracut'" -i hosts-dev
 ```
