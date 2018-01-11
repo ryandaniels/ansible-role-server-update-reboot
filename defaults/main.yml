@@ -32,4 +32,5 @@ server_update_apt_default: full
 #  - linux-generic
 #  - linux-headers-generic
 #  - linux-image-generic
+#  - intel-microcode
 #  - openssh*
