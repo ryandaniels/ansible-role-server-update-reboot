@@ -11,7 +11,6 @@
 - debug: var=server_update_apt_default
   when: ansible_os_family == "Debian" and update_default | bool
 
-
 - debug: var=server_update_apt_install_pkgs
   when: ansible_os_family == "Debian" and update_default | bool and (server_update_apt_default == "update_specific" or server_update_apt_default == "install")
 

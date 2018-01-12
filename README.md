@@ -126,15 +126,18 @@ ansible-playbook server-update-reboot.yml --extra-vars "inventory=ubuntu-dev ser
 
 ## Spectre/Meltdown Mitigation
 
-To patch Redhat/CentOS 7 and Ubuntu 16.04, for Spectre and Meltdown (CVE-2017-5754, CVE-2017-5753, CVE-2017-5715)  
+To patch Redhat/CentOS 7 and Ubuntu 16.04, for [Spectre](https://spectreattack.com/) and [Meltdown](https://meltdownattack.com/) (CVE-2017-5754, CVE-2017-5753, CVE-2017-5715)  
+Info from [Ubuntu](https://wiki.ubuntu.com/SecurityTeam/KnowledgeBase/SpectreAndMeltdown)  
+Info from [Redhat](https://access.redhat.com/security/vulnerabilities/speculativeexecution)  
 
+Or just patch everything using first command above.  
 
-### For Redhat/CentOS 7
+### For Redhat/CentOS 7 (Spectre/Meltdown Mitigation)
 ```
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=centos-dev server_update_yum_install_pkgs='kernel-*, iwl*firmware, microcode_ctl, dracut'" -i hosts-dev
 ```
 
-### For Ubuntu 16.04
+### For Ubuntu 16.04 (Spectre/Meltdown Mitigation)
 ```
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=ubuntu-dev server_update_apt_default=update_specific" --extra-vars "{'server_update_apt_install_pkgs': [linux-firmware, linux-generic, linux-headers-generic, linux-image-generic, intel-microcode]}" -i hosts-dev
 ```
