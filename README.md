@@ -60,13 +60,18 @@ Variables for Ubuntu:
 Example Playbook server-update-reboot.yml
 ------------
 
+Below example playbook will update/reboot one server at a time (using max_fail_percentage and serial variables). If you want to update/reboot everything at once uncomment those lines.
 ```
 ---
 - hosts: '{{inventory}}'
+  max_fail_percentage: 0
+  serial: 1
   become: yes
   roles:
+#  - stop-applications
   - server-update-reboot
-  - server-config-xyz
+#  - server-config-xyz
+#  - start-applications
 ```
 
 

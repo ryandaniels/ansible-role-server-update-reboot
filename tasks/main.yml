@@ -36,7 +36,7 @@
     #only_upgrade: yes
     only_upgrade: "{{ 'yes' if server_update_apt_default == 'update_specific' else 'no' }}"
     #Error from apt module when having upgrade here. Have to separate upgrade dist or upgrade specific package.
-#    upgrade: "{{ 'no' if server_update_apt_install_pkgs is defined else 'dist' | default(dist)}}"
+#    upgrade: "{{ 'dist' if server_update_apt_default == 'full' | default(omit)}}"
     update_cache: yes
   environment: "{{proxy_env}}"
   register: server_update_apt_install_pkgs_results
@@ -56,6 +56,10 @@
     #upgrade: safe
     update_cache: yes
   environment: "{{proxy_env}}"
+  register: server_update_apt_install_all_results
+  when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_default == "full"
+
+- debug: var=server_update_apt_install_all_results.stdout_lines
   when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_default == "full"
 
 #Exclude updating package(s), hack using apt-mark to temp hold before and unhold after update
