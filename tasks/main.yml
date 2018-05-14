@@ -102,7 +102,7 @@
       exclude: "{{server_update_yum_exclude_pkgs | default([])}}"
     environment: "{{proxy_env}}"
     register: stat_yum_upgrade_results
-    until: '"failed" not in stat_yum_upgrade_results'
+    until: "stat_yum_upgrade_results is success"
     retries: 2
     delay: 30
   rescue:
