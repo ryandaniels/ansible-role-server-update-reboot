@@ -111,6 +111,9 @@
   - fail: msg='YUM Upgrade failed'
   when: ansible_os_family == "RedHat" and update_default | bool
 
+- debug: var=stat_yum_upgrade_results
+  when: debug_enabled_default | bool
+
 - name: yum | Check if reboot is needed because kernel was upgraded
   shell: LAST_KERNEL=$(rpm -q --last kernel | awk 'NR==1{sub(/kernel-/,""); print $1}'); CURRENT_KERNEL=$(uname -r); if [ $LAST_KERNEL != $CURRENT_KERNEL ]; then echo 'reboot'; else echo 'no'; fi
   changed_when: false
@@ -134,7 +137,7 @@
   when: ansible_os_family == "RedHat" and reboot_default | bool and reboot_hint_result | bool
 
 # Wait for server to come back online
-- name: wait for server {{ ansible_ssh_host | default(inventory_hostname) }} to come back online
+- name: wait for server to come back online
   wait_for:
     port: "{{ server_update_ssh_port }}"
     state: started
