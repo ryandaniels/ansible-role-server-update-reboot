@@ -6,19 +6,18 @@ Works with Redhat/CentOS and Ubuntu.
 
 Can be used to update packages for [Meltdown/Spectre Mitigation](#spectremeltdown-mitigation) for Redhat/CentOS 7 and Ubuntu 16.04  
 
+**Requires**: Ansible 2.7 (uses reboot module)
+
 Note:  
 This role can reboot the server if there is a kernel update and if the reboot variable is true (reboot is default setting).
 
+## Distros tested
 
-Distros tested
-------------
-
+* Ubuntu 18.04
 * Ubuntu 16.04 - It should work on older versions of Ubuntu/Debian based systems.
-* CentOS 7.4
+* CentOS & RHEL 7.4/7.5
 
-
-Group Variables
-------------
+## Group Variables
 
 ./group_vars/centos-dev/proxy.yml  
 With a proxy:
@@ -33,34 +32,36 @@ With no proxy:
 proxy_env: []
 ```
 
+## Default Settings
 
-Default Settings
-------------
-
-- **debug_enabled_default**: true|false (default false)
-- **update_default**: true|false (default true)
-- **reboot_default**: true|false (default true)
-- **server_update_reboot_wait**: true|false (default true)
-- **server_update_ssh_port**: SSH port of server (default 22)
+* **debug_enabled_default**: true|false (default false)
+* **update_default**: true|false (default true)
+* **reboot_default**: true|false (default true)
+* **server_update_reboot_wait**: true|false (default true)
+* **server_update_ssh_port**: SSH port of server (default 22)
+* **server_update_reboot_pre_reboot_delay**: Time (in seconds) to wait before rebooting
+* **server_update_reboot_post_reboot_delay**: Time (in seconds) to wait after rebooting
+* **server_update_reboot_reboot_timeout**: Maximum time (in seconds) to wait for server to reboot
 
 Variables for RHEL/CentOS:
-- **server_update_yum_exclude_pkgs**: comma separated string of packages to exclude from update. Can use wildcards. (default [])
-- **server_update_yum_install_pkgs**: comma separated string of packages to ONLY update. Can use wildcards. (default '*' meaning all packages)
+
+* **server_update_yum_exclude_pkgs**: comma separated string of packages to exclude from update. Can use wildcards. (default [])
+* **server_update_yum_install_pkgs**: comma separated string of packages to ONLY update. Can use wildcards. (default '*' meaning all packages)
 
 Variables for Ubuntu:
-- **server_update_apt_exclude_default**: true|false. set true if using exclude list below (default false)
-- **server_update_apt_exclude_pkgs**: List of packages to not update (each on separate line). Can include wildcard (but use ^ to begin match or a lot will match) to match multiple packages. (default undefined)
-- **server_update_apt_default**: full|update_specific|install (default full)
-  - full: update all packages using "apt-get dist-upgrade"
-  - update_specific: only update from list in variable server_update_apt_install_pkgs
-  - install: only install from list in variable server_update_apt_install_pkgs
-- **server_update_apt_install_pkgs**: List of packages to ONLY update or install (each on separate line). Can include wildcard to match multiple packages. (default undefined)
 
+* **server_update_apt_exclude_default**: true|false. set true if using exclude list below (default false)
+* **server_update_apt_exclude_pkgs**: List of packages to not update (each on separate line). Can include wildcard (but use ^ to begin match or a lot will match) to match multiple packages. (default undefined)
+* **server_update_apt_default**: full|update_specific|install (default full)
+  * full: update all packages using "apt-get dist-upgrade"
+  * update_specific: only update from list in variable server_update_apt_install_pkgs
+  * install: only install from list in variable server_update_apt_install_pkgs
+* **server_update_apt_install_pkgs**: List of packages to ONLY update or install (each on separate line). Can include wildcard to match multiple packages. (default undefined)
 
-Example Playbook server-update-reboot.yml
-------------
+## Example Playbook server-update-reboot.yml
 
 Below example playbook will update/reboot one server at a time (using max_fail_percentage and serial variables). If you want to update/reboot everything at once uncomment those lines.
+
 ```
 ---
 - hosts: '{{inventory}}'
@@ -74,18 +75,15 @@ Below example playbook will update/reboot one server at a time (using max_fail_p
 #  - start-applications
 ```
 
+## Prep
 
-Prep
-------------
+* install ansible
+* create keys
+* ssh to client to add entry to known_hosts file
+* configure client server authorized_keys
+* run ansible commands
 
-- install ansible
-- create keys
-- ssh to client to add entry to known_hosts file
-- configure client server authorized_keys
-- run ansible commands
-
-Usage
-------------
+## Usage
 
 ### For Redhat/CentOS/Ubuntu
 
@@ -128,7 +126,6 @@ Only install specific packages (for Ubuntu). Be careful with wildcards:
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=ubuntu-dev server_update_apt_default=install" --extra-vars "{'server_update_apt_install_pkgs': [bash, openssh-server]}" -i hosts-dev
 ```
 
-
 ## Spectre/Meltdown Mitigation
 
 To patch Redhat/CentOS 7 and Ubuntu 16.04, for [Spectre](https://spectreattack.com/) and [Meltdown](https://meltdownattack.com/) (CVE-2017-5754, CVE-2017-5753, CVE-2017-5715)  
@@ -138,18 +135,21 @@ Info from [Redhat](https://access.redhat.com/security/vulnerabilities/speculativ
 Or just patch everything using first command above.  
 
 ### For Redhat/CentOS 7 (Spectre/Meltdown Mitigation)
+
 ```
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=centos-dev server_update_yum_install_pkgs='kernel-*, iwl*firmware, microcode_ctl, dracut'" -i hosts-dev
 ```
 
 ### For Ubuntu 16.04 (Spectre/Meltdown Mitigation)
+
 ```
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=ubuntu-dev server_update_apt_default=update_specific" --extra-vars "{'server_update_apt_install_pkgs': [linux-firmware, linux-generic, linux-headers-generic, linux-image-generic, intel-microcode]}" -i hosts-dev
 ```
 
-
 ## Notes
+
 ### RHEL5
+
 RHEL/CentOS 5 has a dependency that needs to be installed: python-simplejson  
 This command will use the raw module to install it:
 ```
@@ -157,6 +157,7 @@ ansible centos5 -m raw -a "yum install -y python-simplejson" --become --ask-pass
 ```
 
 ### SELinux
+
 If SELinux is enabled/permissive a dependency is needed: libselinux-python  
 This command will use the raw module to install it:
 ```

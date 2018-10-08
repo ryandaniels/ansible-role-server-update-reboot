@@ -22,14 +22,14 @@
 
 #Exclude updating package(s), hack using apt-mark to temp hold before and unhold after update
 #Not using dpkg_selections module since it can't use wildcard.
-- name: apt | exclude a package from updating (hold)
+- name: server update reboot | apt - exclude a package from updating (hold)
   command: "apt-mark hold {{item}}"
   with_items:
     - "{{ server_update_apt_exclude_pkgs }}"
   when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_exclude_default | bool
 
 #Upgrade and reboot Ubuntu/Debian based servers
-- name: apt | Upgrade or Install specific packages
+- name: server update reboot | apt - Upgrade or Install specific packages
   apt:
     name: "{{item}}"
     state: latest
@@ -48,7 +48,7 @@
 - debug: var=server_update_apt_install_pkgs_results.results
   when: ansible_os_family == "Debian" and update_default | bool and (server_update_apt_default == "update_specific" or server_update_apt_default == "install")
 
-- name: apt | Upgrade all packages
+- name: server update reboot | apt - Upgrade all packages
   apt:
     state: latest
     upgrade: dist
@@ -64,13 +64,13 @@
 
 #Exclude updating package(s), hack using apt-mark to temp hold before and unhold after update
 #Not using dpkg_selections module since it can't use wildcard.
-- name: apt | exclude a package from updating (unhold)
+- name: server update reboot | apt - exclude a package from updating (unhold)
   command: "apt-mark unhold {{item}}"
   with_items:
     - "{{ server_update_apt_exclude_pkgs }}"
   when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_exclude_default | bool
 
-- name: apt | Check if reboot is needed because kernel was upgraded
+- name: server update reboot | apt - Check if reboot is needed because kernel was upgraded
   stat:
     path: /var/run/reboot-required
   register: apt_reboot_hint_result
@@ -84,17 +84,9 @@
     reboot_hint_result: true
   when: ansible_os_family == "Debian" and reboot_default | bool and apt_reboot_hint_result.stat.exists == true
 
-- name: apt | restart server
-  shell: sleep 3 && shutdown -r now "Reboot required (via Ansible)"
-  async: 1
-  poll: 0
-  ignore_errors: true
-  become: yes
-  when: ansible_os_family == "Debian" and reboot_default | bool and reboot_hint_result | bool
-
 #Upgrade and reboot Redhat/CentOS based servers
 - block:
-  - name: yum | Upgrade or Install packages
+  - name: server update reboot | yum - Upgrade or Install packages
     yum:
       name: "{{server_update_yum_install_pkgs | default('*')}}"
       state: latest
@@ -114,7 +106,7 @@
 - debug: var=stat_yum_upgrade_results
   when: debug_enabled_default | bool
 
-- name: yum | Check if reboot is needed because kernel was upgraded
+- name: server update reboot | Check if reboot is needed because kernel was upgraded
   shell: LAST_KERNEL=$(rpm -q --last kernel | awk 'NR==1{sub(/kernel-/,""); print $1}'); CURRENT_KERNEL=$(uname -r); if [ $LAST_KERNEL != $CURRENT_KERNEL ]; then echo 'reboot'; else echo 'no'; fi
   changed_when: false
   register: yum_reboot_hint_result
@@ -128,24 +120,9 @@
     reboot_hint_result: true
   when: ansible_os_family == "RedHat" and reboot_default | bool and yum_reboot_hint_result.stdout.find("reboot") != -1
 
-- name: yum | restart server
-  command: /usr/bin/systemd-run --on-active=5 --timer-property=AccuracySec=100ms /usr/bin/systemctl reboot
-  async: 0
-  poll: 0
-  ignore_errors: true
-  become: yes
-  when: ansible_os_family == "RedHat" and reboot_default | bool and reboot_hint_result | bool
-
-# Wait for server to come back online
-- name: wait for server to come back online
-  wait_for:
-    port: "{{ server_update_ssh_port }}"
-    state: started
-    host: '{{ ansible_ssh_host | default(inventory_hostname) }}'
-    delay: 10
-    sleep: 2
-    timeout: 300
-    search_regex: OpenSSH
-  become: no
-  connection: local
-  when: server_update_reboot_wait | bool and reboot_default | bool and reboot_hint_result | bool
+- name: server update reboot | restart server
+  reboot:
+    pre_reboot_delay: "{{ server_update_reboot_pre_reboot_delay }}"
+    post_reboot_delay: "{{ server_update_reboot_post_reboot_delay }}"
+    reboot_timeout: "{{ server_update_reboot_reboot_timeout }}"
+  when: reboot_default | bool and reboot_hint_result | bool
