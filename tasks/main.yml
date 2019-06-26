@@ -17,13 +17,14 @@
 - debug: var=server_update_yum_install_pkgs
   when: ansible_os_family == "RedHat" and update_default | bool and server_update_yum_install_pkgs is defined
 
-- pause:
+- name: pause
+  pause:
     seconds: 5
 
 #Exclude updating package(s), hack using apt-mark to temp hold before and unhold after update
 #Not using dpkg_selections module since it can't use wildcard.
 - name: server update reboot | apt - exclude a package from updating (hold)
-  command: "apt-mark hold {{item}}"
+  command: "apt-mark hold {{ item }}"
   with_items:
     - "{{ server_update_apt_exclude_pkgs }}"
   when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_exclude_default | bool
@@ -31,14 +32,14 @@
 #Upgrade and reboot Ubuntu/Debian based servers
 - name: server update reboot | apt - Upgrade or Install specific packages
   apt:
-    name: "{{item}}"
-    state: latest
+    name: "{{ item }}"
+    state: latest # noqa 403
     #only_upgrade: yes
     only_upgrade: "{{ 'yes' if server_update_apt_default == 'update_specific' else 'no' }}"
     #Error from apt module when having upgrade here. Have to separate upgrade dist or upgrade specific package.
-#    upgrade: "{{ 'dist' if server_update_apt_default == 'full' | default(omit)}}"
+#    upgrade: "{{ 'dist' if server_update_apt_default == 'full' | default(omit) }}"
     update_cache: yes
-  environment: "{{proxy_env}}"
+  environment: "{{ proxy_env }}"
   register: server_update_apt_install_pkgs_results
   with_items:
     - "{{ server_update_apt_install_pkgs }}"
@@ -50,12 +51,12 @@
 
 - name: server update reboot | apt - Upgrade all packages
   apt:
-    state: latest
+    state: latest # noqa 403
     upgrade: dist
     #do not use upgrade: safe since it uses aptitude if available, and from testing that doesn't honour apt-mark hold
     #upgrade: safe
     update_cache: yes
-  environment: "{{proxy_env}}"
+  environment: "{{ proxy_env }}"
   register: server_update_apt_install_all_results
   when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_default == "full"
 
@@ -65,7 +66,7 @@
 #Exclude updating package(s), hack using apt-mark to temp hold before and unhold after update
 #Not using dpkg_selections module since it can't use wildcard.
 - name: server update reboot | apt - exclude a package from updating (unhold)
-  command: "apt-mark unhold {{item}}"
+  command: "apt-mark unhold {{ item }}"
   with_items:
     - "{{ server_update_apt_exclude_pkgs }}"
   when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_exclude_default | bool
@@ -76,23 +77,25 @@
   register: apt_reboot_hint_result
   when: ansible_os_family == "Debian"
 
-- set_fact:
+- name: set fact reboot hint false
+  set_fact:
     reboot_hint_result: false
-  when: ansible_os_family == "Debian" and reboot_default | bool and apt_reboot_hint_result.stat.exists == false
+  when: ansible_os_family == "Debian" and reboot_default | bool and apt_reboot_hint_result.stat.exists == false # noqa 601
 
-- set_fact:
+- name: set fact reboot hint true
+  set_fact:
     reboot_hint_result: true
-  when: ansible_os_family == "Debian" and reboot_default | bool and apt_reboot_hint_result.stat.exists == true
+  when: ansible_os_family == "Debian" and reboot_default | bool and apt_reboot_hint_result.stat.exists == true # noqa 601
 
 #Upgrade and reboot Redhat/CentOS based servers
 - block:
   - name: server update reboot | yum - Upgrade or Install packages
     yum:
-      name: "{{server_update_yum_install_pkgs | default('*')}}"
+      name: "{{ server_update_yum_install_pkgs | default('*') }}"
       state: latest
       update_cache: yes
-      exclude: "{{server_update_yum_exclude_pkgs | default([])}}"
-    environment: "{{proxy_env}}"
+      exclude: "{{ server_update_yum_exclude_pkgs | default([]) }}"
+    environment: "{{ proxy_env }}"
     register: stat_yum_upgrade_results
     until: "stat_yum_upgrade_results is success"
     retries: 2
@@ -100,14 +103,15 @@
   rescue:
   - debug: msg='YUM Upgrade failed'
   - meta: flush_handlers
-  - fail: msg='YUM Upgrade failed'
+  - name: fail check
+    fail: msg='YUM Upgrade failed'
   when: ansible_os_family == "RedHat" and update_default | bool
 
 - debug: var=stat_yum_upgrade_results
   when: debug_enabled_default | bool
 
 - name: server update reboot | Check if reboot is needed because kernel was upgraded
-  shell: LAST_KERNEL=$(rpm -q --last kernel | awk 'NR==1{sub(/kernel-/,""); print $1}'); CURRENT_KERNEL=$(uname -r); if [ $LAST_KERNEL != $CURRENT_KERNEL ]; then echo 'reboot'; else echo 'no'; fi
+  shell: LAST_KERNEL=$(rpm -q --last kernel | awk 'NR==1{sub(/kernel-/,""); print $1}'); CURRENT_KERNEL=$(uname -r); if [ $LAST_KERNEL != $CURRENT_KERNEL ]; then echo 'reboot'; else echo 'no'; fi # noqa 204
   changed_when: false
   register: yum_reboot_hint_result
   when: ansible_os_family == "RedHat"
