@@ -15,20 +15,22 @@ This role can reboot the server if there is a kernel update and if the reboot va
 
 * Ubuntu 18.04
 * Ubuntu 16.04 - It should work on older versions of Ubuntu/Debian based systems.
-* CentOS & RHEL 7.4/7.5
+* CentOS & RHEL 7.x
 
 ## Group Variables
 
 ./group_vars/centos-dev/proxy.yml  
 With a proxy:
-```
+
+```yaml
 proxy_env:
   http_proxy: http://my.internal.proxy:80
   https_proxy: https://my.internal.proxy:80
 ```
 
 With no proxy:
-```
+
+```yaml
 proxy_env: []
 ```
 
@@ -62,7 +64,7 @@ Variables for Ubuntu:
 
 Below example playbook will update/reboot one server at a time (using max_fail_percentage and serial variables). If you want to update/reboot everything at once uncomment those lines.
 
-```
+```yaml
 ---
 - hosts: '{{inventory}}'
   max_fail_percentage: 0
@@ -87,42 +89,49 @@ Below example playbook will update/reboot one server at a time (using max_fail_p
 
 ### For Redhat/CentOS/Ubuntu
 
-Use all defaults to: update, reboot server, and wait for server to start up.
-```
+Use all defaults to update, reboot server, and wait for server to start up:
+
+```bash
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=all-dev" -i hosts-dev
 ```
 
 Same as above, but do not reboot server:
-```
+
+```bash
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=all-dev reboot_default=false" -i hosts-dev
 ```
 
 ### For Redhat/CentOS
 
 Update all packages except package(s) specified (for RHEL):
-```
+
+```bash
 ansible-playbook server-update-reboot.yml --extra-vars 'inventory=centos-dev server_update_yum_exclude_pkgs="mysql*, bash, openssh*"' -i hosts-dev
 ```
 
 Only update (or install) specific packages (for RHEL):
-```
+
+```bash
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=centos-dev server_update_yum_install_pkgs='kernel-*, iwl*firmware, microcode_ctl, dracut'" -i hosts-dev
 ```
 
 ### For Ubuntu
 
 Update all packages except package(s) specified (for Ubuntu):
-```
+
+```bash
 ansible-playbook server-update-reboot.yml --extra-vars 'inventory=ubuntu-dev server_update_apt_exclude_default=true' --extra-vars '{"server_update_apt_exclude_pkgs": [bash, openssl, ^mysql*, ^openssh*]}' -i hosts-dev
 ```
 
 Only update specific packages (for Ubuntu):
-```
+
+```bash
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=ubuntu-dev server_update_apt_default=update_specific" --extra-vars "{'server_update_apt_install_pkgs': [linux-firmware, linux-generic, linux-headers-generic, linux-image-generic, intel-microcode, openssh*]}" -i hosts-dev
 ```
 
 Only install specific packages (for Ubuntu). Be careful with wildcards:
-```
+
+```bash
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=ubuntu-dev server_update_apt_default=install" --extra-vars "{'server_update_apt_install_pkgs': [bash, openssh-server]}" -i hosts-dev
 ```
 
@@ -136,13 +145,13 @@ Or just patch everything using first command above.
 
 ### For Redhat/CentOS 7 (Spectre/Meltdown Mitigation)
 
-```
+```bash
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=centos-dev server_update_yum_install_pkgs='kernel-*, iwl*firmware, microcode_ctl, dracut'" -i hosts-dev
 ```
 
 ### For Ubuntu 16.04 (Spectre/Meltdown Mitigation)
 
-```
+```bash
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=ubuntu-dev server_update_apt_default=update_specific" --extra-vars "{'server_update_apt_install_pkgs': [linux-firmware, linux-generic, linux-headers-generic, linux-image-generic, intel-microcode]}" -i hosts-dev
 ```
 
@@ -152,7 +161,8 @@ ansible-playbook server-update-reboot.yml --extra-vars "inventory=ubuntu-dev ser
 
 RHEL/CentOS 5 has a dependency that needs to be installed: python-simplejson  
 This command will use the raw module to install it:
-```
+
+```bash
 ansible centos5 -m raw -a "yum install -y python-simplejson" --become --ask-pass --become-method=su --ask-become-pass --extra-vars="ansible_ssh_user=username123" -i hosts-dev
 ```
 
@@ -160,6 +170,7 @@ ansible centos5 -m raw -a "yum install -y python-simplejson" --become --ask-pass
 
 If SELinux is enabled/permissive a dependency is needed: libselinux-python  
 This command will use the raw module to install it:
-```
+
+```bash
 ansible centos5 -m raw -a "yum install -y libselinux-python" --become --ask-pass --become-method=su --ask-become-pass --extra-vars="ansible_ssh_user=username123" -i hosts-dev
 ```
