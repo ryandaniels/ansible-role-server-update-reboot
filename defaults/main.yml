@@ -2,8 +2,9 @@
 debug_enabled_default: false
 update_default: true
 reboot_default: true
-server_update_reboot_wait: true
-server_update_ssh_port: 22
+server_update_reboot_pre_reboot_delay: 0
+server_update_reboot_post_reboot_delay: 10
+server_update_reboot_reboot_timeout: 600
 #
 #For Redhat/CentOS: List of packages to not update (comma separated).
 #Can include wildcard to match multiple packages.
