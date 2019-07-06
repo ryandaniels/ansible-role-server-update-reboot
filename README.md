@@ -8,15 +8,14 @@ Can be used to update packages for [Meltdown/Spectre Mitigation](#spectremeltdow
 
 More detailed example can be found in the blog post: [User Management with Ansible](https://ryandaniels.ca/blog/ansible-update-ubuntu-centos-redhat/)  
 
-**Requires**: Ansible 2.7 (uses reboot module)
+**Requires**: Ansible 2.7.1 (uses reboot module and 2.7.1 fixes reboot_timeout)
 
 Note:  
 This role can reboot the server if there is a kernel update and if the reboot variable is true (reboot is default setting).
 
 ## Distros tested
 
-* Ubuntu 18.04
-* Ubuntu 16.04 - It should work on older versions of Ubuntu/Debian based systems.
+* Ubuntu 18.04 / 16.04
 * CentOS & RHEL 7.x
 
 ## Group Variables
