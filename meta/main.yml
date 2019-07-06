@@ -20,6 +20,6 @@ galaxy_info:
         - all
   galaxy_tags:
     - system
-    - users
+    - update
 
 dependencies: []
