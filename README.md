@@ -6,6 +6,8 @@ Works with Redhat/CentOS and Ubuntu.
 
 Can be used to update packages for [Meltdown/Spectre Mitigation](#spectremeltdown-mitigation) for Redhat/CentOS 7 and Ubuntu 16.04  
 
+More detailed example can be found in the blog post: [User Management with Ansible](https://ryandaniels.ca/blog/ansible-update-ubuntu-centos-redhat/)  
+
 **Requires**: Ansible 2.7 (uses reboot module)
 
 Note:  
