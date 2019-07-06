@@ -1,20 +1,26 @@
 ---
-- debug: var=proxy_env
+- name: debug proxy_env
+  debug: var=proxy_env
   when: debug_enabled_default | bool
 
-- debug: var=server_update_apt_exclude_pkgs
+- name: debug server_update_apt_exclude_pkgs
+  debug: var=server_update_apt_exclude_pkgs
   when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_exclude_default | bool
 
-- debug: var=server_update_yum_exclude_pkgs
+- name: debug server_update_yum_exclude_pkgs
+  debug: var=server_update_yum_exclude_pkgs
   when: ansible_os_family == "RedHat" and update_default | bool and server_update_yum_exclude_pkgs
 
-- debug: var=server_update_apt_default
+- name: debug server_update_apt_default
+  debug: var=server_update_apt_default
   when: ansible_os_family == "Debian" and update_default | bool
 
-- debug: var=server_update_apt_install_pkgs
+- name: debug server_update_apt_install_pkgs
+  debug: var=server_update_apt_install_pkgs
   when: ansible_os_family == "Debian" and update_default | bool and (server_update_apt_default == "update_specific" or server_update_apt_default == "install")
 
-- debug: var=server_update_yum_install_pkgs
+- name: debug server_update_yum_install_pkgs
+  debug: var=server_update_yum_install_pkgs
   when: ansible_os_family == "RedHat" and update_default | bool and server_update_yum_install_pkgs is defined
 
 - name: pause
@@ -46,7 +52,8 @@
   when: ansible_os_family == "Debian" and update_default | bool and (server_update_apt_default == "update_specific" or server_update_apt_default == "install")
 
 #because above var was registered in "with_items", cannot print only stdout_lines
-- debug: var=server_update_apt_install_pkgs_results.results
+- name: debug server_update_apt_install_pkgs_results
+  debug: var=server_update_apt_install_pkgs_results.results
   when: ansible_os_family == "Debian" and update_default | bool and (server_update_apt_default == "update_specific" or server_update_apt_default == "install")
 
 - name: server update reboot | apt - Upgrade all packages
@@ -60,7 +67,8 @@
   register: server_update_apt_install_all_results
   when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_default == "full"
 
-- debug: var=server_update_apt_install_all_results.stdout_lines
+- name: debug server_update_apt_install_all_results
+  debug: var=server_update_apt_install_all_results.stdout_lines
   when: ansible_os_family == "Debian" and update_default | bool and server_update_apt_default == "full"
 
 #Exclude updating package(s), hack using apt-mark to temp hold before and unhold after update
@@ -101,13 +109,15 @@
     retries: 2
     delay: 30
   rescue:
-  - debug: msg='YUM Upgrade failed'
+  - name: debug yum failed
+    debug: msg='YUM Upgrade failed'
   - meta: flush_handlers
   - name: fail check
     fail: msg='YUM Upgrade failed'
   when: ansible_os_family == "RedHat" and update_default | bool
 
-- debug: var=stat_yum_upgrade_results
+- name: debug stat_yum_upgrade_results
+  debug: var=stat_yum_upgrade_results
   when: debug_enabled_default | bool
 
 - name: server update reboot | Check if reboot is needed because kernel was upgraded
