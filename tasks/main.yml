@@ -126,11 +126,13 @@
   register: yum_reboot_hint_result
   when: ansible_os_family == "RedHat"
 
-- set_fact:
+- name: set_fact for reboot
+  set_fact:
     reboot_hint_result: false
   when: ansible_os_family == "RedHat" and reboot_default | bool and yum_reboot_hint_result.stdout.find("no") != -1
 
-- set_fact:
+- name: set_fact for reboot
+  set_fact:
     reboot_hint_result: true
   when: ansible_os_family == "RedHat" and reboot_default | bool and yum_reboot_hint_result.stdout.find("reboot") != -1
 
