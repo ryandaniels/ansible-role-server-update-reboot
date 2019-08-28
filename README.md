@@ -40,8 +40,7 @@ proxy_env: []
 * **debug_enabled_default**: true|false (default false)
 * **update_default**: true|false (default true)
 * **reboot_default**: true|false (default true)
-* **server_update_reboot_wait**: true|false (default true)
-* **server_update_ssh_port**: SSH port of server (default 22)
+* **server_update_reboot_pre_delay**: Time (in seconds) to wait before running tasks in this role
 * **server_update_reboot_pre_reboot_delay**: Time (in seconds) to wait before rebooting
 * **server_update_reboot_post_reboot_delay**: Time (in seconds) to wait after rebooting
 * **server_update_reboot_reboot_timeout**: Maximum time (in seconds) to wait for server to reboot
@@ -90,7 +89,7 @@ Below example playbook will update/reboot one server at a time (using max_fail_p
 
 ### For Redhat/CentOS/Ubuntu
 
-Use all defaults to update, reboot server, and wait for server to start up:
+Use all defaults to: update, reboot server, and wait for server to start up:
 
 ```bash
 ansible-playbook server-update-reboot.yml --extra-vars "inventory=all-dev" -i hosts-dev
