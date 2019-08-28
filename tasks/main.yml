@@ -100,7 +100,7 @@
   - name: server update reboot | yum - Upgrade or Install packages
     yum:
       name: "{{ server_update_yum_install_pkgs | default('*') }}"
-      state: latest
+      state: latest # noqa 10
       update_cache: yes
       exclude: "{{ server_update_yum_exclude_pkgs | default([]) }}"
     environment: "{{ proxy_env }}"
@@ -108,6 +108,8 @@
     until: "stat_yum_upgrade_results is success"
     retries: 2
     delay: 30
+    tags:
+      - skip_ansible_lint
   rescue:
   - name: debug yum failed
     debug: msg='YUM Upgrade failed'
